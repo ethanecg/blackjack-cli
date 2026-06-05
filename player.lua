@@ -4,7 +4,6 @@ local Module = {}
 function Module.Player(name, totalCash)
     local player = {}
 
-    -- methods
     if name == nil or string.gsub(name, " ", "") == "" then
         error("error : the name cannot be empty", 0)
     else
@@ -19,7 +18,8 @@ function Module.Player(name, totalCash)
 
     player.bet = 0
 
-    -- methods
+    --- add a bet
+    ---@param betToAdd integer the bet you want to add trigger an error if the value is not valid
     function player:AddBet(betToAdd)
         if betToAdd <= 0 then
             error("error : the bet cannot be negative or equal to 0", 0)

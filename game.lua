@@ -5,29 +5,30 @@ function Module.Game(player)
 
     -- parameter
     local needSHuffle = false
-    local allCards = {}
-    function game:AllCards()
-        return allCards
+    local deck = {}
+    function game:Deck()
+        return deck
     end
 
-    local playerCurrentCards = {}
-    function game:PlayerCurrentCards()
-        return playerCurrentCards
+    local playerHand = {}
+    function game:PlayersHand()
+        return playerHand
     end
 
-    local dealerCurrentCards = {}
-    function game:DealerCurrentCards()
-        return dealerCurrentCards
+    local dealersHand = {}
+    function game:DealersHand()
+        return dealersHand
     end
 
     local secondDealerCardShown
+    --- set the second delaer card to be shown or now this is usefull well you call the function show table
     function game:SecondDealerCardShown(value)
         secondDealerCardShown = value
     end
 
     --- remove the cards from the global cards and add cards in it again
     function game:RestockCards()
-        allCards = {} -- make the deck of cards empty
+        deck = {} -- make the deck of cards empty
 
         local cardMap = {
             [1] = "A",
@@ -40,7 +41,7 @@ function Module.Game(player)
             for v = 1, 13, 1 do -- card value
                 local cardValue = cardMap[v] or v
                 for n = 1, 4 do -- number of similar card value
-                    table.insert(allCards, v)
+                    table.insert(deck, cardValue)
                 end
             end
         end
@@ -102,57 +103,79 @@ function Module.Game(player)
         return cardValue
     end
 
-    --- randomly take a card from the deck and put it in the hand of the dealer and the player (2 for each)
+    --- randomly take a card from the deck and put it in the hand of the dealer and the player (2 for each) also use ShowTable()
     function game:FirstCardDistribution()
         for i = 1, 2, 1 do
-            local playerCardIndex = math.random(1, #allCards)
-            table.insert(playerCurrentCards, allCards(playerCardIndex))
-            table.remove(allCards, playerCardIndex)
+            local playerCardIndex = math.random(1, #deck)
+            table.insert(playerHand, deck[playerCardIndex])
+            table.remove(deck, playerCardIndex)
 
-            local dealerCardIndex = math.random(1, #allCards)
-            table.insert(dealerCurrentCards, allCards(dealerCardIndex))
-            table.remove(allCards, dealerCardIndex)
+            os.execute("cls")
+            print("distibuting.. \n")
+            game:ShowTable()
+            os.execute("timeout /t 1 /nobreak >nul")
 
-            local dealerCardsIndex = math.random(1, #allCards)
+            local dealerCardIndex = math.random(1, #deck)
+            table.insert(dealersHand, deck[dealerCardIndex])
+            table.remove(deck, dealerCardIndex)
+
+            os.execute("cls")
+            print("distibuting.. \n")
+            game:ShowTable()
+            os.execute("timeout /t 1 /nobreak >nul")
         end
     end
 
     --- return the different outcome based on your hand ("blackjack", "flop", "canplay")
+    ---@param hand (number|string)[] the hand that contain the cards
     function game:CheckOutcome(hand)
-        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 and game:ReturnTotalHandValue(dealerCurrentCards) ~= 21 then
+        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 and game:ReturnTotalHandValue(dealersHand) ~= 21 then
             return "blackjack"
         elseif game:ReturnTotalHandValue(hand) > 21 then
-            return "flop"
+            return "bust"
         elseif game:ReturnTotalHandValue(hand) < 21 then
             return "canplay" -- means you have choice like hit or stand
         end
     end
 
-    --- add a card to players hand
+    --- add a card to the players hand
     function game:SecondCardDistribution()
-        local playerCardIndex = math.random(1, #allCards)
-        table.insert(playerCurrentCards, allCards(playerCardIndex))
-        table.remove(allCards, playerCardIndex)
+        local playerCardIndex = math.random(1, #deck)
+        table.insert(playerHand, deck[playerCardIndex])
+        table.remove(deck, playerCardIndex)
     end
 
+    --- add cards to the dealers hand until he his hand value >= 17 and show table for each time add a card is added
     function game:FinalCardDistribution()
         repeat
-            local dealerCardIndex = math.random(1, #allCards)
-            table.insert(dealerCurrentCards, allCards(dealerCardIndex))
-            table.remove(allCards, dealerCardIndex)
-        until game:ReturnTotalHandValue(dealerCurrentCards) >= 17
+            local dealerCardIndex = math.random(1, #deck)
+            table.insert(dealersHand, deck[dealerCardIndex])
+            table.remove(deck, dealerCardIndex)
+            game:ShowTable()
+        until game:ReturnTotalHandValue(dealersHand) >= 17
     end
 
+    --- print the cards of both the ddealer and the player in the console
     function game:ShowTable()
         print("")
-        for i = 1, #dealerCurrentCards, 1 do
-            io.write(" | " .. dealerCurrentCards[i] .. " | ")
+        for i = 1, #dealersHand, 1 do
+            if secondDealerCardShown and i == 2 then
+                io.write(" | " .. "?" .. " | ")
+            else
+                io.write(" | " .. dealersHand[i] .. " | ")
+            end
         end
-        print("")
-        for i = 1, #dealerCurrentCards, 1 do
-            io.write(" | " .. playerCurrentCards[i] .. " | ")
+        print("\n")
+        for i = 1, #playerHand, 1 do
+            io.write(" | " .. playerHand[i] .. " | ")
         end
-        print("")
+        print("\n")
+    end
+
+    --- remove all cards from the dealersHand and the playersHand
+    function game:ResetHand()
+        playerHand = {}
+        dealersHand = {}
     end
 
     return game
