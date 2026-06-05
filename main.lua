@@ -21,7 +21,7 @@ repeat
     local playerTotalCash = tonumber(io.read())
     valid, johnRisk = pcall(playerModule.Player, "John risk", playerTotalCash) -- first value is bool and second is either string or player object
     if not valid then
-        print("\27[31m" .. tostring(johnRisk) .. "\27[0m" .. "\n")
+        print("\27[31m" .. tostring(johnRisk) .. "\27[0m" .. "\n")             -- bassiaclly the color
     end
 until valid == true
 
@@ -38,10 +38,8 @@ print("= =     =  =  ==    =")
 print("= =====     ==      =")
 print("=====================")
 
-gameModule.Game(johnRisk)
-
 -- create new game
---[[
+
 repeat
     local quit = false
     print("PLACE A BET | (x) exit | (i) info")
@@ -51,14 +49,13 @@ repeat
         if addBetValid == true then
             gameModule.Game(johnRisk)
         else
-
+            print("you need to enter a valid number")
         end
-    elseif string.gsub(string.lower(betOrInfo), " ", "") == "I" then
+    elseif string.gsub(string.lower(betOrInfo), " ", "") == "i" then
         print("this table play with 2 packs ~ the minimum bet to play is 1 $")
-    elseif string.gsub(string.lower(betOrInfo), " ", "") == "X" then
+    elseif string.gsub(string.lower(betOrInfo), " ", "") == "x" then
         quit = true
     else
         -- do nothing
     end
 until quit == true
---]]
