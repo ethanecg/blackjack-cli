@@ -13,6 +13,6 @@ I started this project by making the classes first (player and game) then I made
 During this project I learn alot of built in function and overall I learn alot of lua by using my knowledge of c# to translate them and find the difference between these two language. This help me expend my knowlege and will help me for future project that have lua in them.
 ## 🚥Running the project
 To run the project in your local environnement, follow these steps:
-  1.
-  2.
-  3.
+  1. Clone the repository to your local machine.
+  2. Download lua-5.5.0 or a higher version here : https://luabinaries.sourceforge.net/download.html 
+  3. 
