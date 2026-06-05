@@ -6,8 +6,24 @@ function Module.Game(player)
     -- parameter
     local needSHuffle = false
     local allCards = {}
+    function game:AllCards()
+        return allCards
+    end
+
     local playerCurrentCards = {}
+    function game:PlayerCurrentCards()
+        return playerCurrentCards
+    end
+
     local dealerCurrentCards = {}
+    function game:DealerCurrentCards()
+        return dealerCurrentCards
+    end
+
+    local secondDealerCardShown
+    function game:SecondDealerCardShown(value)
+        secondDealerCardShown = value
+    end
 
     --- remove the cards from the global cards and add cards in it again
     function game:RestockCards()
@@ -103,7 +119,7 @@ function Module.Game(player)
 
     --- return the different outcome based on your hand ("blackjack", "flop", "canplay")
     function game:CheckOutcome(hand)
-        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 then
+        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 and game:ReturnTotalHandValue(dealerCurrentCards) ~= 21 then
             return "blackjack"
         elseif game:ReturnTotalHandValue(hand) > 21 then
             return "flop"
@@ -125,6 +141,18 @@ function Module.Game(player)
             table.insert(dealerCurrentCards, allCards(dealerCardIndex))
             table.remove(allCards, dealerCardIndex)
         until game:ReturnTotalHandValue(dealerCurrentCards) >= 17
+    end
+
+    function game:ShowTable()
+        print("")
+        for i = 1, #dealerCurrentCards, 1 do
+            io.write(" | " .. dealerCurrentCards[i] .. " | ")
+        end
+        print("")
+        for i = 1, #dealerCurrentCards, 1 do
+            io.write(" | " .. playerCurrentCards[i] .. " | ")
+        end
+        print("")
     end
 
     return game
