@@ -113,6 +113,7 @@ while johnRisk.totalCash ~= 0 do
                 currentGame:ShowTable()
                 os.execute("timeout /t 1 /nobreak >nul")
                 if currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" then
+                    currentGame:SecondDealerCardNotShown(false)
                     finishGame = true
                 end
             end
@@ -158,11 +159,12 @@ while johnRisk.totalCash ~= 0 do
                 currentGame:FinalCardDistribution()
             end
 
-            os.execute("cls")
-            currentGame:ShowTable()
-
             finishGame = true
         end
+
+        currentGame:SecondDealerCardNotShown(false) -- If there is a blackjack reveal the hidden card.
+        os.execute("cls")
+        currentGame:ShowTable()
 
         --#region Check results.
         if currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" and currentGame:CheckOutcome(currentGame:PlayersHand()) ~= "blackjack" then     -- Dealer blackjack.

@@ -173,21 +173,23 @@ function Module.Game(player)
         game:SecondDealerCardNotShown(false)
         game:ShowTable()
 
-        repeat
-            os.execute("cls")
-            print("distibuting.. \n")
-            game:ShowTable()
-            os.execute("timeout /t 1 /nobreak >nul")
+        if not (game:ReturnTotalHandValue(dealersHand) >= 17) then
+            repeat
+                os.execute("cls")
+                print("distibuting.. \n")
+                game:ShowTable()
+                os.execute("timeout /t 1 /nobreak >nul")
 
-            local dealerCardIndex = math.random(1, #deck)
-            table.insert(dealersHand, deck[dealerCardIndex])
-            table.remove(deck, dealerCardIndex)
+                local dealerCardIndex = math.random(1, #deck)
+                table.insert(dealersHand, deck[dealerCardIndex])
+                table.remove(deck, dealerCardIndex)
 
-            os.execute("cls")
-            print("distibuting.. \n")
-            game:ShowTable()
-            os.execute("timeout /t 1 /nobreak >nul")
-        until game:ReturnTotalHandValue(dealersHand) >= 17
+                os.execute("cls")
+                print("distibuting.. \n")
+                game:ShowTable()
+                os.execute("timeout /t 1 /nobreak >nul")
+            until game:ReturnTotalHandValue(dealersHand) >= 17
+        end
     end
 
     --- print the cards of both the ddealer and the player in the console
