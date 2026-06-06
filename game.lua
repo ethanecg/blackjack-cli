@@ -20,10 +20,10 @@ function Module.Game(player)
         return dealersHand
     end
 
-    local secondDealerCardShown
+    local secondDealerCardNotShown
     --- set the second delaer card to be shown or now this is usefull well you call the function show table
-    function game:SecondDealerCardShown(value)
-        secondDealerCardShown = value
+    function game:SecondDealerCardNotShown(value)
+        secondDealerCardNotShown = value
     end
 
     --- remove the cards from the global cards and add cards in it again
@@ -103,13 +103,27 @@ function Module.Game(player)
         return cardValue
     end
 
+    --- return the different outcome based on your hand ("blackjack", "flop", "canplay")
+    ---@param hand (number|string)[] the hand that contain the cards
+    function game:CheckOutcome(hand)
+        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 then
+            return "blackjack"
+        elseif game:ReturnTotalHandValue(hand) > 21 then
+            return "bust"
+        elseif game:ReturnTotalHandValue(hand) < 21 then
+            return "canplay" -- means you have choice like hit or stand
+        end
+    end
+
     --- randomly take a card from the deck and put it in the hand of the dealer and the player (2 for each) also use ShowTable()
     function game:FirstCardDistribution()
         for i = 1, 2, 1 do
-            os.execute("cls")
-            print("distibuting.. \n")
-            game:ShowTable()
-            os.execute("timeout /t 1 /nobreak >nul")
+            if i == 1 then
+                os.execute("cls")
+                print("distibuting.. \n")
+                game:ShowTable()
+                os.execute("timeout /t 1 /nobreak >nul")
+            end
 
             local playerCardIndex = math.random(1, #deck)
             table.insert(playerHand, deck[playerCardIndex])
@@ -131,18 +145,6 @@ function Module.Game(player)
         end
     end
 
-    --- return the different outcome based on your hand ("blackjack", "flop", "canplay")
-    ---@param hand (number|string)[] the hand that contain the cards
-    function game:CheckOutcome(hand)
-        if #hand == 2 and game:ReturnTotalHandValue(hand) == 21 then
-            return "blackjack"
-        elseif game:ReturnTotalHandValue(hand) > 21 then
-            return "bust"
-        elseif game:ReturnTotalHandValue(hand) < 21 then
-            return "canplay" -- means you have choice like hit or stand
-        end
-    end
-
     --- add a card to the players hand
     function game:SecondCardDistribution()
         os.execute("cls")
@@ -160,34 +162,39 @@ function Module.Game(player)
         os.execute("timeout /t 1 /nobreak >nul")
     end
 
-    --- add cards to the dealers hand until he his hand value >= 17 and show table for each time add a card is added
+    --- Show the hidden card and add cards to the dealers hand until he his hand value >= 17 and show table for each time add a card is added.
     function game:FinalCardDistribution()
-        if game:ReturnTotalHandValue(dealersHand) >= 17 then
-            -- do nothing
-        else
-            repeat
-                os.execute("cls")
-                print("distibuting.. \n")
-                game:ShowTable()
-                os.execute("timeout /t 1 /nobreak >nul")
+        -- Reveal the card.
+        os.execute("cls")
+        print("Revealing the hidden card.. \n")
+        game:ShowTable()
+        os.execute("timeout /t 1 /nobreak >nul")
+        os.execute("cls")
+        game:SecondDealerCardNotShown(false)
+        game:ShowTable()
 
-                local dealerCardIndex = math.random(1, #deck)
-                table.insert(dealersHand, deck[dealerCardIndex])
-                table.remove(deck, dealerCardIndex)
+        repeat
+            os.execute("cls")
+            print("distibuting.. \n")
+            game:ShowTable()
+            os.execute("timeout /t 1 /nobreak >nul")
 
-                os.execute("cls")
-                print("distibuting.. \n")
-                game:ShowTable()
-                os.execute("timeout /t 1 /nobreak >nul")
-            until game:ReturnTotalHandValue(dealersHand) >= 17
-        end
+            local dealerCardIndex = math.random(1, #deck)
+            table.insert(dealersHand, deck[dealerCardIndex])
+            table.remove(deck, dealerCardIndex)
+
+            os.execute("cls")
+            print("distibuting.. \n")
+            game:ShowTable()
+            os.execute("timeout /t 1 /nobreak >nul")
+        until game:ReturnTotalHandValue(dealersHand) >= 17
     end
 
     --- print the cards of both the ddealer and the player in the console
     function game:ShowTable()
         print("")
         for i = 1, #dealersHand, 1 do
-            if secondDealerCardShown and i == 2 then
+            if secondDealerCardNotShown and i == 2 then
                 io.write(" | " .. "?" .. " | ")
             else
                 io.write(" | " .. dealersHand[i] .. " | ")

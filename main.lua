@@ -1,12 +1,12 @@
+os.execute("cls")
+
 local playerModule = require("player")
 local gameModule = require("game")
 
-local johnRisk -- the player
-local currentGame
+local johnRisk    -- the player
+local currentGame -- the game
 
-
-
---- print a beautiful logo (the logo is not made by me)
+--- Print an ASCII logo that show "BJ".
 function BlackJackLogo()
     print(" ____       _")
     print("|  _ \\     | |")
@@ -17,63 +17,76 @@ function BlackJackLogo()
     print("==============")
 end
 
-BlackJackLogo()
+--- Print "enter to continue" and wait for the user to enter anything then clear the console.
+function PressToContinue()
+    io.write("enter to continue..")
+    local _ = io.read()
+    os.execute("cls")
+end
 
--- create new player
+--#region Choose the total cash you have and create a player object.
 repeat
+    BlackJackLogo()
     local valid
     print("How much money do you want to start with ? | (x) exit")
     local playerTotalCash = io.read()
+    -- Exit option.
     if string.gsub(string.lower(playerTotalCash), " ", "") == "x" then
         os.exit()
+        -- Place a bet option and round the bet.
     elseif tonumber(playerTotalCash) ~= nil then
-        local playerTotalCashInt = tonumber(playerTotalCash)
-        valid, johnRisk = pcall(playerModule.Player, "John risk", playerTotalCashInt) -- first value is bool and second is either string or player object
+        local playerTotalCashInt = tonumber(math.floor(playerTotalCash))
+        valid, johnRisk = pcall(playerModule.Player, "John risk", playerTotalCashInt) -- try to create a new player (object)
         if not valid then
             print("\27[31m" .. tostring(johnRisk) .. "\27[0m")
-            io.write("enter to continue..")
-            local _ = io.read()
-            os.execute("cls")
+            PressToContinue()
+        else
+            print("\27[32m" .. "success!" .. "\27[0m")
+            PressToContinue()
         end
+    else
+        print("\27[31m" .. "Fail to convert the input into a number." .. "\27[0m")
+        PressToContinue()
     end
 until valid == true
-
+--#endregion
 
 os.execute("cls")
+currentGame = gameModule.Game(johnRisk) -- Create a new game game object.
 
-BlackJackLogo()
-
--- create new game
-currentGame = gameModule.Game(johnRisk)
-
-while johnRisk.totalCash ~= 0 do -- infinite loop
-    -- place bet
+while johnRisk.totalCash ~= 0 do
+    --#region Place a bet to start a game.
     repeat
+        BlackJackLogo()
         local startGame = false
         print("PLACE A BET " .. "(" .. johnRisk.totalCash .. "$ total)" .. " | (x) exit | (i) info")
         local betOrInfo = io.read()
-        if tonumber(betOrInfo) ~= nil then           -- if its a int
-            local betOrInfoInt = tonumber(betOrInfo) -- well its always a bet
-            local addBetValid, johnRisk = pcall(johnRisk.AddBet, johnRisk, betOrInfoInt)
+        if tonumber(betOrInfo) ~= nil then
+            local bet = tonumber(math.floor(betOrInfo))
+            local addBetValid, johnRisk = pcall(johnRisk.AddBet, johnRisk, bet)
             if addBetValid == true then
                 startGame = true
             else
-                print("\27[31m" .. "you need to enter a number above 0 and below you total cash" .. "\27[0m")
-                io.write("enter to continue..")
-                local _ = io.read()
+                print("\27[31m" .. "You need to enter a number of atleast 1 and below you total cash" .. "\27[0m")
+                PressToContinue()
             end
         elseif string.gsub(string.lower(betOrInfo), " ", "") == "i" then
-            print("this table play with 2 packs ~ the minimum bet to play is 1 $")
+            print("This table have a shoe with 2 decks. ~ The minimum bet to play is 1$. ~ No split. ~ No double.")
+            PressToContinue()
         elseif string.gsub(string.lower(betOrInfo), " ", "") == "x" then
-            os.exit() -- quit the game
+            os.exit()
+        else
+            print("\27[31m" .. "Enter a valid choice." .. "\27[0m")
+            PressToContinue()
         end
-        os.execute("cls")
     until startGame == true
+    --#endregion
 
-    -- game start
+    --#region Start the game.
     repeat
         -- before game start check if the game need shuffling
-        currentGame:SecondDealerCardShown(true)
+        os.execute("cls")
+        currentGame:SecondDealerCardNotShown(true)
         local finishGame = false
         if #currentGame:Deck() < 32 then -- restock cards at aproximatly 30% of 104 cards to avoid running out of card
             print("shuffling cards..")
@@ -87,17 +100,21 @@ while johnRisk.totalCash ~= 0 do -- infinite loop
 
         -- check for potential blackjack for the dealer (end the game immediatly)
         os.execute("cls")
-        print("checking for blackjack.. \n")
-        currentGame:ShowTable()
-        os.execute("timeout /t 1 /nobreak >nul")
-        if currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" then
-            finishGame = true
-            if currentGame:CheckOutcome(currentGame:PlayersHand()) == "blackjack" then
-                finishGame = true
-                print("push !")
-                johnRisk.totalCash = johnRisk.totalCash + johnRisk.bet
-            else
-                print("dealer blackjack ! -" .. johnRisk.bet .. "$")
+        local cardMap = {
+            "A",
+            10,
+            "Q",
+            "J",
+            "K"
+        }
+        for i = 1, #cardMap, 1 do
+            if currentGame:DealersHand()[1] == cardMap[i] then
+                print("checking for blackjack.. \n")
+                currentGame:ShowTable()
+                os.execute("timeout /t 1 /nobreak >nul")
+                if currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" then
+                    finishGame = true
+                end
             end
         end
 
@@ -112,11 +129,6 @@ while johnRisk.totalCash ~= 0 do -- infinite loop
                 end
                 if currentGame:CheckOutcome(currentGame:PlayersHand()) == "blackjack" then
                     finishGame = true
-                    print("$ BlackJack $ +" .. johnRisk.bet * 3 .. "$")
-                    johnRisk.totalCash = johnRisk.totalCash +
-                        johnRisk.bet *
-                        3 -- * 3 cuz 2.5 would cause it to be a float number (need fix)
-                    break
                 elseif currentGame:CheckOutcome(currentGame:PlayersHand()) == "canplay" then
                     repeat
                         local finishChoice = false
@@ -134,15 +146,14 @@ while johnRisk.totalCash ~= 0 do -- infinite loop
                         end
                     until finishChoice == true
                 else
-                    -- bust but outcome is checked later
+                    -- Bust but outcome is checked later.
                     finishGame = true
                     break
                 end
             end
 
-            -- dealersTurn
+            -- Dealer's turn.
             if finishGame == false then
-                currentGame:SecondDealerCardShown(false)
                 currentGame:FinalCardDistribution()
             end
 
@@ -151,28 +162,37 @@ while johnRisk.totalCash ~= 0 do -- infinite loop
 
             finishGame = true
             -- check results
-            if currentGame:CheckOutcome(currentGame:PlayersHand()) == "bust" then
-                print("bust ! -" .. johnRisk.bet .. "$")
-            elseif currentGame:CheckOutcome(currentGame:DealersHand()) == "bust" then
-                print("dealer bust ! +" .. johnRisk.bet .. "$")
+            if currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" and currentGame:CheckOutcome(currentGame:PlayersHand()) ~= "blackjack" then     -- Dealer blackjack.
+                print("\27[31m" .. "Dealer blackjack ! -" .. johnRisk.bet .. "$" .. "\27[0m")
+            elseif currentGame:CheckOutcome(currentGame:DealersHand()) ~= "blackjack" and currentGame:CheckOutcome(currentGame:PlayersHand()) == "blackjack" then -- Player blackjack.
+                print("\27[32m" .. "$ BlackJack $ +" .. johnRisk.bet * 3 .. "$" .. "\27[0m")
+                johnRisk.totalCash = johnRisk.totalCash +
+                    johnRisk.bet *
+                    3                                                                                                                                             -- Multiple by 3 to avoid having to round and potentialy losing gain.
+                break
+            elseif currentGame:CheckOutcome(currentGame:DealersHand()) == "blackjack" and currentGame:CheckOutcome(currentGame:PlayersHand()) ~= "blackjack" then -- Dealer and player blackjack.
+                print("\27[33m" .. "Push !" .. "\27[0m")
+                johnRisk.totalCash = johnRisk.totalCash + johnRisk.bet
+            elseif currentGame:CheckOutcome(currentGame:PlayersHand()) == "bust" then -- Player bust.
+                print("\27[31m" .. "Bust ! -" .. johnRisk.bet .. "$" .. "\27[0m")
+            elseif currentGame:CheckOutcome(currentGame:DealersHand()) == "bust" then -- Dealer bust
+                print("\27[32m" .. "Dealer bust ! +" .. johnRisk.bet .. "$" .. "\27[0m")
                 johnRisk.totalCash = johnRisk.totalCash + johnRisk.bet * 2
-            elseif currentGame:ReturnTotalHandValue(currentGame:PlayersHand()) > currentGame:ReturnTotalHandValue(currentGame:DealersHand()) then
-                print("win ! +" .. johnRisk.bet .. "$")
+            elseif currentGame:ReturnTotalHandValue(currentGame:PlayersHand()) > currentGame:ReturnTotalHandValue(currentGame:DealersHand()) then -- Player have a stronger hand.
+                print("\27[32m" .. "Win ! +" .. johnRisk.bet .. "$" .. "\27[0m")
                 johnRisk.totalCash = johnRisk.totalCash + johnRisk.bet * 2
-            elseif currentGame:ReturnTotalHandValue(currentGame:PlayersHand()) < currentGame:ReturnTotalHandValue(currentGame:DealersHand()) then
-                print("lose ! -" .. johnRisk.bet .. "$")
-            else
-                print("push !")
+            elseif currentGame:ReturnTotalHandValue(currentGame:PlayersHand()) < currentGame:ReturnTotalHandValue(currentGame:DealersHand()) then -- Dealer have a stronger hand.
+                print("\27[31m" .. "Lose ! -" .. johnRisk.bet .. "$" .. "\27[0m")
+            else                                                                                                                                  -- Player and the dealer have the same hand value.
+                print("\27[33m" .. "Push !" .. "\27[0m")
                 johnRisk.totalCash = johnRisk.totalCash + johnRisk.bet
             end
         end
     until finishGame == true
-    print("\n")
-    io.write("enter to continue..")
-    local _ = io.read()
-    os.execute("cls")
+    --#endregion
+    PressToContinue()
     currentGame:ResetHand()
     johnRisk.bet = 0
 end
 
-print("you lost everything, was it worth it?")
+print("You lost everything, was it worth it?")
