@@ -14,7 +14,7 @@ Through this project, I got comfortable with Lua's built-in functions and system
 ## 🚥 Running the project
 To run the project in your local environnement, follow these steps:
   1. Clone the repository to your local machine
-  2. Download lua-5.5.0 or a higher version here : https://luabinaries.sourceforge.net/download.html 
+  2. Download lua-5.5.0 here : https://sourceforge.net/projects/luabinaries/files/5.5.0/
   3. Extract the lua zip folder
   4. Open the extracted folder, take lua.exe and put it in your root folder (C:\)
   5. Open the command prompt and change your directory to where you download the repository (e.x., cd \Program Files\blackjack-cli)
