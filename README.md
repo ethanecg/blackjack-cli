@@ -19,4 +19,7 @@ To run the project in your local environnement, follow these steps:
   4. Open the extracted folder, take lua.exe and put it in your root folder (C:\)
   5. Open the command prompt and change your directory to where you download the repository (e.x., cd \Program Files\blackjack-cli)
   6. After change your directory in command prompt enter the command : lua main.lua
-## 👀 Demonstration 
+## 👀 Demonstration
+<video src="https://github.com/ethanecg/blackjack-cli/blob/main/demo.mp4" width="100%" controls>
+  Your browser does not support the video tag.
+</video>
